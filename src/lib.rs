@@ -112,7 +112,7 @@ impl<const N: usize> core::fmt::Write for StaticString<N> {
     }
 }
 
-trait ToStaticString {
+pub trait ToStaticString {
     fn to_static_string<const N: usize>(&self) -> Result<StaticString<N>, StaticStringError>;
 }
 
