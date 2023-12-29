@@ -19,7 +19,7 @@ impl From<StaticVecError> for StaticStringError {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct StaticString<const N: usize> {
     data: StaticVec<u8, N>,
 }
@@ -112,6 +112,18 @@ impl<const N: usize> core::fmt::Write for StaticString<N> {
     }
 }
 
+impl<const N: usize> core::fmt::Display for StaticString<N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Display::fmt(&**self, f)
+    }
+}
+
+impl<const N: usize> core::fmt::Debug for StaticString<N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Debug::fmt(&**self, f)
+    }
+}
+
 pub trait ToStaticString {
     fn to_static_string<const N: usize>(&self) -> Result<StaticString<N>, StaticStringError>;
 }
@@ -125,3 +137,11 @@ impl<T: core::fmt::Display + ?Sized> ToStaticString for T {
     }
 }
 
+impl<const N: usize> core::ops::Deref for StaticString<N> {
+    type Target = str;
+
+    #[inline]
+    fn deref(&self) -> &str {
+        unsafe { core::str::from_utf8_unchecked(self.data.as_slice()) }
+    }
+}
