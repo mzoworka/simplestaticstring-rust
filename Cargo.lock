@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "simplestaticstring-rust"
+name = "simplestaticstring"
 version = "0.1.0"
 dependencies = [
  "simplestaticvec",
