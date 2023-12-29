@@ -12,4 +12,4 @@ dependencies = [
 [[package]]
 name = "simplestaticvec"
 version = "0.1.0"
-source = "git+ssh://git@github.com/mzoworka/simplestaticvec-rust.git#087cc15008e8ff5148c90ae762e03c7a33c5c11e"
+source = "git+ssh://git@github.com/mzoworka/simplestaticvec-rust.git#7772e637c0ad1985477f3d02e5d1ac33b534dc3e"

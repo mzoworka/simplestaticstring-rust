@@ -25,11 +25,11 @@ pub struct StaticString<const N: usize> {
 }
 
 impl<const N: usize> StaticString<N> {
-    pub fn new(len: usize) -> Self
+    pub fn new(len: usize) -> Result<Self, StaticStringError>
     {
-        Self {
-            data: StaticVec::new(len),
-        }
+        Ok(Self {
+            data: StaticVec::new(len).map_err(|e: StaticVecError| -> StaticStringError {e.into()})?,
+        })
     }
 
     pub fn format(args: core::fmt::Arguments<'_>) -> Result<Self, StaticStringError> {
@@ -84,7 +84,7 @@ impl<'a, const N: usize> IntoIterator for &'a StaticString<N> {
 
 impl<const N: usize> Default for StaticString<N> {
     fn default() -> Self {
-        Self { data: StaticVec::new(0) }
+        Self { data: StaticVec::default() }
     }
 }
 
@@ -118,7 +118,7 @@ trait ToStaticString {
 
 impl<T: core::fmt::Display + ?Sized> ToStaticString for T {
     default fn to_static_string<const N: usize>(&self) -> Result<StaticString<N>, StaticStringError> {
-        let mut buf = StaticString::<N>::new(0);
+        let mut buf = StaticString::<N>::new(0)?;
         let mut formatter = core::fmt::Formatter::new(&mut buf);
         core::fmt::Display::fmt(self, &mut formatter).map_err(|_e| StaticStringError::CapacityExceeded)?; //CapacityExceeded is the only possible error from Write
         Ok(buf)
