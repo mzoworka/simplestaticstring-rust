@@ -1,0 +1,1 @@
+# simplestaticstring-rust
