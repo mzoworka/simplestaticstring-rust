@@ -154,6 +154,19 @@ impl<const N: usize> From<StaticStringError> for StaticString<N>
     }
 }
 
+impl<const N: usize, T, E> From<Result<T,E>> for StaticString<N>
+where
+    T: Into<StaticString<N>>,
+    E: Into<StaticString<N>>,
+{
+    fn from(value: Result<T,E>) -> Self {
+        match value {
+            Ok(x) => x.into(),
+            Err(e) => e.into(),
+        }
+    }
+}
+
 
 pub trait ToStaticString {
     fn to_static_string<const N: usize>(&self) -> Result<StaticString<N>, StaticStringError>;
