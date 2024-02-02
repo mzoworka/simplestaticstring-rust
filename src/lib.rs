@@ -1,10 +1,27 @@
 #![no_std]
 #![feature(min_specialization)]
 #![feature(fmt_internals)]
+#![feature(generic_const_exprs)]
+#![feature(generic_arg_infer)]
 
 use core::slice;
-
 use simplestaticvec::{StaticVec, StaticVecError};
+
+
+fn extend_array<T, const A: usize, const N: usize>(
+    a: [T; A], fill: T,
+) -> [T; N]
+where
+    T: Clone,
+    [(); N]: ,
+{
+    let mut ary: [T; N] = core::array::from_fn(|_| fill.clone());
+    for (idx, val) in a.into_iter().enumerate() {
+        ary[idx] = val;
+    }
+    ary
+}
+
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum StaticStringError {
@@ -123,6 +140,20 @@ impl<const N: usize> core::fmt::Debug for StaticString<N> {
         core::fmt::Debug::fmt(&**self, f)
     }
 }
+
+
+impl<const N: usize> From<StaticStringError> for StaticString<N>
+{
+    fn from(value: StaticStringError) -> Self {
+        match value {
+            StaticStringError::CapacityExceeded => {
+                let arr: [u8; N] = extend_array::<_, _, N>(*b"CapacityExceeded", b' ');
+                arr.into()
+            },
+        }
+    }
+}
+
 
 pub trait ToStaticString {
     fn to_static_string<const N: usize>(&self) -> Result<StaticString<N>, StaticStringError>;
