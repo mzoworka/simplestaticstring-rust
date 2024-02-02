@@ -56,6 +56,12 @@ impl<const N: usize> StaticString<N> {
         self.data.len()
     }
 
+    pub fn from_array<const A: usize>(value: [u8; A], fill: u8) -> Self 
+    where [(); N-A]:,
+    {
+        extend_array(value, fill).into()
+    }
+
     pub fn as_slice(&self) -> &[u8] {
         &self.data.as_slice()
     }
@@ -148,8 +154,7 @@ where [(); N-16]:,
     {
         match value {
             StaticStringError::CapacityExceeded => {
-                let arr: [u8; N] = extend_array::<_, 16, N>(*b"CapacityExceeded", b' ');
-                arr.into()
+                StaticString::from_array(*b"CapacityExceeded", b' ')
             },
         }
     }
