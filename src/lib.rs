@@ -8,12 +8,11 @@ use core::slice;
 use simplestaticvec::{StaticVec, StaticVecError};
 
 
-fn extend_array<T, const A: usize, const N: usize>(
-    a: [T; A], fill: T,
-) -> [T; N]
+fn extend_array<T, const A: usize, const N: usize>(a: [T; A], fill: T) -> [T; N]
 where
     T: Clone,
     [(); N]: ,
+    [(); N-A]: ,
 {
     let mut ary: [T; N] = core::array::from_fn(|_| fill.clone());
     for (idx, val) in a.into_iter().enumerate() {
@@ -143,11 +142,13 @@ impl<const N: usize> core::fmt::Debug for StaticString<N> {
 
 
 impl<const N: usize> From<StaticStringError> for StaticString<N>
+where [(); N-16]:,
 {
-    fn from(value: StaticStringError) -> Self {
+    fn from(value: StaticStringError) -> Self 
+    {
         match value {
             StaticStringError::CapacityExceeded => {
-                let arr: [u8; N] = extend_array::<_, _, N>(*b"CapacityExceeded", b' ');
+                let arr: [u8; N] = extend_array::<_, 16, N>(*b"CapacityExceeded", b' ');
                 arr.into()
             },
         }
