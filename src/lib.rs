@@ -197,3 +197,14 @@ impl<const N: usize> core::ops::Deref for StaticString<N> {
         unsafe { core::str::from_utf8_unchecked(self.data.as_slice()) }
     }
 }
+
+#[macro_export]
+macro_rules! format_static {
+    ($($arg:tt)*) => {
+        {
+        let mut macro_format_static_buf = StaticString::default();
+        let _ = write!(macro_format_static_buf, $($arg)*);
+        macro_format_static_buf
+        }
+    };
+}
