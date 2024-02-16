@@ -1,4 +1,6 @@
 #![no_std]
+#![allow(incomplete_features)]
+#![allow(internal_features)]
 #![feature(min_specialization)]
 #![feature(fmt_internals)]
 #![feature(generic_const_exprs)]
@@ -7,12 +9,11 @@
 use core::slice;
 use simplestaticvec::{StaticVec, StaticVecError};
 
-
 fn extend_array<T, const A: usize, const N: usize>(a: [T; A], fill: T) -> [T; N]
 where
     T: Clone,
-    [(); N]: ,
-    [(); N-A]: ,
+    [(); N]:,
+    [(); N - A]:,
 {
     let mut ary: [T; N] = core::array::from_fn(|_| fill.clone());
     for (idx, val) in a.into_iter().enumerate() {
@@ -20,7 +21,6 @@ where
     }
     ary
 }
-
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum StaticStringError {
@@ -41,10 +41,10 @@ pub struct StaticString<const N: usize> {
 }
 
 impl<const N: usize> StaticString<N> {
-    pub fn new(len: usize) -> Result<Self, StaticStringError>
-    {
+    pub fn new(len: usize) -> Result<Self, StaticStringError> {
         Ok(Self {
-            data: StaticVec::new(len).map_err(|e: StaticVecError| -> StaticStringError {e.into()})?,
+            data: StaticVec::new(len)
+                .map_err(|e: StaticVecError| -> StaticStringError { e.into() })?,
         })
     }
 
@@ -56,8 +56,13 @@ impl<const N: usize> StaticString<N> {
         self.data.len()
     }
 
-    pub fn from_array<const A: usize>(value: [u8; A]) -> Self 
-    where [(); N-A]:,
+    pub fn is_empty(&self) -> bool {
+        self.data.len() == 0
+    }
+
+    pub fn from_array<const A: usize>(value: [u8; A]) -> Self
+    where
+        [(); N - A]:,
     {
         let mut x: Self = extend_array(value, 0u8).into();
         x.resize(A).unwrap();
@@ -65,7 +70,7 @@ impl<const N: usize> StaticString<N> {
     }
 
     pub fn as_slice(&self) -> &[u8] {
-        &self.data.as_slice()
+        self.data.as_slice()
     }
 
     pub fn iter(&self) -> slice::Iter<'_, u8> {
@@ -80,19 +85,24 @@ impl<const N: usize> StaticString<N> {
         self.data.resize(new_len).map_err(|e| e.into())
     }
 
-    pub fn try_extend_from_slice(&mut self, other: &[u8]) -> Result<(), StaticStringError>
-    {
+    pub fn try_extend_from_slice(&mut self, other: &[u8]) -> Result<(), StaticStringError> {
         self.data.try_extend_from_slice(other).map_err(|e| e.into())
     }
 
-    pub fn try_extend_from_iter<I: Iterator<Item = u8>>(&mut self, iter: I) -> Result<(), StaticStringError>
-    {
+    pub fn try_extend_from_iter<I: Iterator<Item = u8>>(
+        &mut self,
+        iter: I,
+    ) -> Result<(), StaticStringError> {
         self.data.try_extend_from_iter(iter).map_err(|e| e.into())
     }
 
-    pub fn try_extend_from_iter_ref<'a, I: Iterator<Item = &'a u8>>(&mut self, iter: I) -> Result<(), StaticStringError>
-    {
-        self.data.try_extend_from_iter(iter.cloned()).map_err(|e| e.into())
+    pub fn try_extend_from_iter_ref<'a, I: Iterator<Item = &'a u8>>(
+        &mut self,
+        iter: I,
+    ) -> Result<(), StaticStringError> {
+        self.data
+            .try_extend_from_iter(iter.cloned())
+            .map_err(|e| e.into())
     }
 }
 
@@ -108,31 +118,28 @@ impl<'a, const N: usize> IntoIterator for &'a StaticString<N> {
 
 impl<const N: usize> Default for StaticString<N> {
     fn default() -> Self {
-        Self { data: StaticVec::default() }
-    }
-}
-
-impl<'a, const N: usize> From<&'a [u8;N]> for StaticString<N> {
-    fn from(value: &'a[u8;N]) -> Self {
-        let this = Self {
-            data: value.into()
-        };
-
-        this
-    }
-}
-
-impl<const N: usize> From<[u8;N]> for StaticString<N> {
-    fn from(value: [u8;N]) -> Self {
         Self {
-            data: value.into()
+            data: StaticVec::default(),
         }
+    }
+}
+
+impl<'a, const N: usize> From<&'a [u8; N]> for StaticString<N> {
+    fn from(value: &'a [u8; N]) -> Self {
+        Self { data: value.into() }
+    }
+}
+
+impl<const N: usize> From<[u8; N]> for StaticString<N> {
+    fn from(value: [u8; N]) -> Self {
+        Self { data: value.into() }
     }
 }
 
 impl<const N: usize> core::fmt::Write for StaticString<N> {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        self.try_extend_from_slice(s.as_bytes()).map_err(|_e| core::fmt::Error)
+        self.try_extend_from_slice(s.as_bytes())
+            .map_err(|_e| core::fmt::Error)
     }
 }
 
@@ -148,26 +155,23 @@ impl<const N: usize> core::fmt::Debug for StaticString<N> {
     }
 }
 
-
 impl<const N: usize> From<StaticStringError> for StaticString<N>
-where [(); N-16]:,
+where
+    [(); N - 16]:,
 {
-    fn from(value: StaticStringError) -> Self 
-    {
+    fn from(value: StaticStringError) -> Self {
         match value {
-            StaticStringError::CapacityExceeded => {
-                StaticString::from_array(*b"CapacityExceeded")
-            },
+            StaticStringError::CapacityExceeded => StaticString::from_array(*b"CapacityExceeded"),
         }
     }
 }
 
-impl<const N: usize, T, E> From<Result<T,E>> for StaticString<N>
+impl<const N: usize, T, E> From<Result<T, E>> for StaticString<N>
 where
     T: Into<StaticString<N>>,
     E: Into<StaticString<N>>,
 {
-    fn from(value: Result<T,E>) -> Self {
+    fn from(value: Result<T, E>) -> Self {
         match value {
             Ok(x) => x.into(),
             Err(e) => e.into(),
@@ -175,16 +179,18 @@ where
     }
 }
 
-
 pub trait ToStaticString {
     fn to_static_string<const N: usize>(&self) -> Result<StaticString<N>, StaticStringError>;
 }
 
 impl<T: core::fmt::Display + ?Sized> ToStaticString for T {
-    default fn to_static_string<const N: usize>(&self) -> Result<StaticString<N>, StaticStringError> {
+    default fn to_static_string<const N: usize>(
+        &self,
+    ) -> Result<StaticString<N>, StaticStringError> {
         let mut buf = StaticString::<N>::new(0)?;
         let mut formatter = core::fmt::Formatter::new(&mut buf);
-        core::fmt::Display::fmt(self, &mut formatter).map_err(|_e| StaticStringError::CapacityExceeded)?; //CapacityExceeded is the only possible error from Write
+        core::fmt::Display::fmt(self, &mut formatter)
+            .map_err(|_e| StaticStringError::CapacityExceeded)?; //CapacityExceeded is the only possible error from Write
         Ok(buf)
     }
 }
