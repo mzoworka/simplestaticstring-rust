@@ -4,23 +4,9 @@
 #![feature(min_specialization)]
 #![feature(fmt_internals)]
 #![feature(generic_const_exprs)]
-#![feature(generic_arg_infer)]
 
 use core::slice;
 use simplestaticvec::{StaticVec, StaticVecError};
-
-fn extend_array<T, const A: usize, const N: usize>(a: [T; A], fill: T) -> [T; N]
-where
-    T: Clone,
-    [(); N]:,
-    [(); N - A]:,
-{
-    let mut ary: [T; N] = core::array::from_fn(|_| fill.clone());
-    for (idx, val) in a.into_iter().enumerate() {
-        ary[idx] = val;
-    }
-    ary
-}
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum StaticStringError {
@@ -64,9 +50,9 @@ impl<const N: usize> StaticString<N> {
     where
         [(); N - A]:,
     {
-        let mut x: Self = extend_array(value, 0u8).into();
-        x.resize(A).unwrap();
-        x
+        Self {
+            data: StaticVec::from_array(value),
+        }
     }
 
     pub fn as_slice(&self) -> &[u8] {
@@ -79,10 +65,6 @@ impl<const N: usize> StaticString<N> {
 
     pub fn iter_mut(&mut self) -> slice::IterMut<'_, u8> {
         self.data.iter_mut()
-    }
-
-    pub fn resize(&mut self, new_len: usize) -> Result<(), StaticStringError> {
-        self.data.resize(new_len).map_err(|e| e.into())
     }
 
     pub fn try_extend_from_slice(&mut self, other: &[u8]) -> Result<(), StaticStringError> {
