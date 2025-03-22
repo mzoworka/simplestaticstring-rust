@@ -4,8 +4,9 @@
 #![feature(min_specialization)]
 #![feature(fmt_internals)]
 #![feature(generic_const_exprs)]
+#![feature(formatting_options)]
 
-use core::slice;
+use core::{fmt::FormattingOptions, slice};
 use simplestaticvec::{StaticVec, StaticVecError};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -170,7 +171,7 @@ impl<T: core::fmt::Display + ?Sized> ToStaticString for T {
         &self,
     ) -> Result<StaticString<N>, StaticStringError> {
         let mut buf = StaticString::<N>::new(0)?;
-        let mut formatter = core::fmt::Formatter::new(&mut buf);
+        let mut formatter = core::fmt::Formatter::new(&mut buf, FormattingOptions::default());
         core::fmt::Display::fmt(self, &mut formatter)
             .map_err(|_e| StaticStringError::CapacityExceeded)?; //CapacityExceeded is the only possible error from Write
         Ok(buf)
