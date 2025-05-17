@@ -4,10 +4,11 @@
 #![feature(min_specialization)]
 #![feature(fmt_internals)]
 #![feature(generic_const_exprs)]
-#![feature(formatting_options)]
+//#![feature(formatting_options)]
 
-use core::{fmt::FormattingOptions, slice};
+use core::slice;
 use simplestaticvec::{StaticVec, StaticVecError};
+use core::fmt::Write as _;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum StaticStringError {
@@ -170,10 +171,7 @@ impl<T: core::fmt::Display + ?Sized> ToStaticString for T {
     default fn to_static_string<const N: usize>(
         &self,
     ) -> Result<StaticString<N>, StaticStringError> {
-        let mut buf = StaticString::<N>::new(0)?;
-        let mut formatter = core::fmt::Formatter::new(&mut buf, FormattingOptions::default());
-        core::fmt::Display::fmt(self, &mut formatter)
-            .map_err(|_e| StaticStringError::CapacityExceeded)?; //CapacityExceeded is the only possible error from Write
+        let buf = format_static!("{}", self);       
         Ok(buf)
     }
 }
