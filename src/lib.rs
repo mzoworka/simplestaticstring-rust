@@ -2,13 +2,11 @@
 #![allow(incomplete_features)]
 #![allow(internal_features)]
 #![feature(min_specialization)]
-#![feature(fmt_internals)]
 #![feature(generic_const_exprs)]
-//#![feature(formatting_options)]
 
+use core::fmt::Write as _;
 use core::slice;
 use simplestaticvec::{StaticVec, StaticVecError};
-use core::fmt::Write as _;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum StaticStringError {
@@ -171,7 +169,7 @@ impl<T: core::fmt::Display + ?Sized> ToStaticString for T {
     default fn to_static_string<const N: usize>(
         &self,
     ) -> Result<StaticString<N>, StaticStringError> {
-        let buf = format_static!("{}", self);       
+        let buf = format_static!("{}", self);
         Ok(buf)
     }
 }
@@ -181,7 +179,7 @@ impl<const N: usize> core::ops::Deref for StaticString<N> {
 
     #[inline]
     fn deref(&self) -> &str {
-        unsafe { core::str::from_utf8_unchecked(self.data.as_slice()) }
+        core::str::from_utf8(self.data.as_slice()).unwrap_or_default()
     }
 }
 

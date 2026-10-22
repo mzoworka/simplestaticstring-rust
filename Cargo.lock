@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "either"
-version = "1.10.0"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11157ac094ffbdde99aa67b23417ebdd801842852b500e395a45a9c0aac03e4a"
+checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
 
 [[package]]
 name = "simplestaticstring"
@@ -18,7 +18,7 @@ dependencies = [
 [[package]]
 name = "simplestaticvec"
 version = "0.1.0"
-source = "git+ssh://git@github.com/mzoworka/simplestaticvec-rust.git#e6bd282b6f73f49314a54d0826cd9fb0090209b4"
+source = "git+ssh://git@github.com/mzoworka/simplestaticvec-rust.git#31704bdb6684b46d66c4946bd4a05479802b5fb9"
 dependencies = [
  "either",
 ]
